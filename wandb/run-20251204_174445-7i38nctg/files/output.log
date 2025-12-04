@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/Users/lishuyu/Codes/wandbTestCNN/train.py", line 177, in <module>
+    train(args)
+    ~~~~~^^^^^^
+  File "/Users/lishuyu/Codes/wandbTestCNN/train.py", line 135, in train
+    log_data["val/sample_predictions"] = log_sample_predictions(
+                                         ~~~~~~~~~~~~~~~~~~~~~~^
+        sample_images[:16].cpu(), sample_labels[:16], preds[:16].cpu()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/lishuyu/Codes/wandbTestCNN/train.py", line 83, in log_sample_predictions
+    wandb.Image(img_2d, caption=f"Pred: {pred.item()} | Label: {label.item()}")
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lishuyu/miniconda3/lib/python3.13/site-packages/wandb/sdk/data_types/image.py", line 277, in __init__
+    self._initialize_from_data(data_or_path, mode, file_type, normalize)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lishuyu/miniconda3/lib/python3.13/site-packages/wandb/sdk/data_types/image.py", line 417, in _initialize_from_data
+    data = data.permute(1, 2, 0).cpu().numpy()  # type: ignore [union-attr]
+           ~~~~~~~~~~~~^^^^^^^^^
+RuntimeError: permute(sparse_coo): number of dimensions in the tensor input does not match the length of the desired ordering of dimensions i.e. input.dim() = 2 is not equal to len(dims) = 3

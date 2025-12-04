@@ -1,0 +1,5 @@
+Epoch 1/5 - train_loss: 0.1339, train_acc: 0.9597 - val_loss: 0.0619, val_acc: 0.9811
+Epoch 2/5 - train_loss: 0.0434, train_acc: 0.9863 - val_loss: 0.0309, val_acc: 0.9894
+Epoch 3/5 - train_loss: 0.0289, train_acc: 0.9908 - val_loss: 0.0352, val_acc: 0.9886
+Epoch 4/5 - train_loss: 0.0209, train_acc: 0.9930 - val_loss: 0.0293, val_acc: 0.9902
+Epoch 5/5 - train_loss: 0.0154, train_acc: 0.9952 - val_loss: 0.0324, val_acc: 0.9904

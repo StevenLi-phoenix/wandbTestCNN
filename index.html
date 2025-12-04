@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digit Predictor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#0f172a",
+            accent: "#22d3ee",
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-gray-900 text-gray-100">
+  <div class="max-w-5xl mx-auto px-4 py-10 space-y-8">
+    <header class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm uppercase tracking-[0.2em] text-gray-400">MNIST Live</p>
+        <h1 class="text-3xl font-semibold text-white mt-1">Digit Predictor</h1>
+        <p class="text-sm text-gray-400 mt-1">Draw a digit, send it to the model, and see probabilities in real time.</p>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-400">
+        <span class="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+        Model Ready
+      </div>
+    </header>
+
+    <main class="grid gap-6 md:grid-cols-2">
+      <section class="rounded-2xl bg-gray-800/80 border border-gray-700 shadow-xl backdrop-blur">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-700">
+          <div>
+            <h2 class="text-lg font-medium text-white">Canvas</h2>
+            <p class="text-xs text-gray-400">White ink on a dark background works best.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="clearBtn" class="px-3 py-2 rounded-lg bg-gray-700 text-gray-100 hover:bg-gray-600 transition">Clear</button>
+            <button id="predictBtn" class="px-3 py-2 rounded-lg bg-accent text-gray-900 font-semibold hover:brightness-110 transition">Predict</button>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-3">
+          <div class="relative rounded-2xl border border-gray-700 bg-ink overflow-hidden shadow-inner" style="width: 100%; max-width: 360px;">
+            <canvas id="canvas" class="block w-full h-full" style="aspect-ratio: 1 / 1;"></canvas>
+          </div>
+          <p class="text-xs text-gray-400">Use mouse or touch to draw. The sketch is downscaled to 28x28 before sending.</p>
+        </div>
+      </section>
+
+      <section class="rounded-2xl bg-gray-800/80 border border-gray-700 shadow-xl backdrop-blur p-5 flex flex-col gap-5">
+        <div>
+          <p class="text-sm text-gray-400">Predicted Digit</p>
+          <div id="predictionDisplay" class="text-6xl font-bold text-accent tracking-tight mt-2">--</div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-gray-400">Probability by class</p>
+            <span id="status" class="text-xs text-gray-500">Ready</span>
+          </div>
+          <div id="probabilityList" class="space-y-2"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const clearBtn = document.getElementById("clearBtn");
+    const predictBtn = document.getElementById("predictBtn");
+    const predictionDisplay = document.getElementById("predictionDisplay");
+    const probabilityList = document.getElementById("probabilityList");
+    const statusEl = document.getElementById("status");
+
+    const renderSize = 320;
+    const downscaleSize = 28;
+    const hiddenCanvas = document.createElement("canvas");
+    hiddenCanvas.width = downscaleSize;
+    hiddenCanvas.height = downscaleSize;
+    const hiddenCtx = hiddenCanvas.getContext("2d");
+    const backgroundColor = "#000000";
+    const strokeColor = "#f8fafc";
+
+    let drawing = false;
+    let hasStroke = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    function setupCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = renderSize * dpr;
+      canvas.height = renderSize * dpr;
+      canvas.style.width = `${renderSize}px`;
+      canvas.style.height = `${renderSize}px`;
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = 18;
+      ctx.strokeStyle = strokeColor;
+      clearCanvas();
+    }
+
+    function setStatus(message, tone = "muted") {
+      statusEl.textContent = message;
+      statusEl.className = `text-xs ${tone === "error" ? "text-rose-400" : tone === "info" ? "text-accent" : "text-gray-500"}`;
+    }
+
+    function clearCanvas() {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, renderSize, renderSize);
+      hasStroke = false;
+      predictionDisplay.textContent = "--";
+      renderProbabilities(Array(10).fill(0));
+      setStatus("Canvas cleared");
+    }
+
+    function getPosition(event) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      };
+    }
+
+    function startDrawing(event) {
+      event.preventDefault();
+      drawing = true;
+      const { x, y } = getPosition(event);
+      lastX = x;
+      lastY = y;
+    }
+
+    function draw(event) {
+      if (!drawing) return;
+      event.preventDefault();
+      const { x, y } = getPosition(event);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      lastX = x;
+      lastY = y;
+      hasStroke = true;
+    }
+
+    function endDrawing(event) {
+      if (!drawing) return;
+      event.preventDefault();
+      drawing = false;
+      sendPrediction();
+    }
+
+    function renderProbabilities(probabilities) {
+      probabilityList.innerHTML = "";
+      probabilities.forEach((value, idx) => {
+        const percent = Math.round(value * 1000) / 10;
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-3";
+
+        const label = document.createElement("div");
+        label.className = "w-5 text-sm text-gray-300";
+        label.textContent = idx;
+        row.appendChild(label);
+
+        const barContainer = document.createElement("div");
+        barContainer.className = "flex-1 h-3 bg-gray-700 rounded-full overflow-hidden";
+        const bar = document.createElement("div");
+        bar.className = "h-full bg-accent";
+        bar.style.width = `${percent}%`;
+        barContainer.appendChild(bar);
+        row.appendChild(barContainer);
+
+        const valueEl = document.createElement("div");
+        valueEl.className = "w-14 text-right text-xs text-gray-300";
+        valueEl.textContent = `${percent.toFixed(1)}%`;
+        row.appendChild(valueEl);
+
+        probabilityList.appendChild(row);
+      });
+    }
+
+    function downscaleToBlob() {
+      return new Promise((resolve, reject) => {
+        hiddenCtx.fillStyle = backgroundColor;
+        hiddenCtx.fillRect(0, 0, downscaleSize, downscaleSize);
+        hiddenCtx.drawImage(canvas, 0, 0, downscaleSize, downscaleSize);
+        hiddenCanvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Failed to create image blob"));
+          }
+        }, "image/png");
+      });
+    }
+
+    async function sendPrediction() {
+      setStatus(hasStroke ? "Sending to model..." : "Sending blank canvas...", "info");
+      predictBtn.disabled = true;
+      predictBtn.classList.add("opacity-70");
+      try {
+        const blob = await downscaleToBlob();
+        const formData = new FormData();
+        formData.append("image", blob, "digit.png");
+
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || `Request failed with ${response.status}`);
+        }
+
+        const data = await response.json();
+        predictionDisplay.textContent = data.prediction ?? "--";
+        renderProbabilities(data.probabilities ?? Array(10).fill(0));
+        setStatus("Prediction updated", "info");
+      } catch (err) {
+        console.error(err);
+        setStatus("Error: " + err.message, "error");
+      } finally {
+        predictBtn.disabled = false;
+        predictBtn.classList.remove("opacity-70");
+      }
+    }
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    window.addEventListener("mouseup", endDrawing);
+
+    canvas.addEventListener("touchstart", startDrawing, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", endDrawing, { passive: false });
+
+    clearBtn.addEventListener("click", clearCanvas);
+    predictBtn.addEventListener("click", sendPrediction);
+
+    renderProbabilities(Array(10).fill(0));
+    setupCanvas();
+  </script>
+</body>
+</html>

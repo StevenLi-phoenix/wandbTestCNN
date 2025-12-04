@@ -1,0 +1,40 @@
+{
+  "os": "macOS-26.0.1-arm64-arm-64bit-Mach-O",
+  "python": "CPython 3.13.9",
+  "startedAt": "2025-12-04T22:48:20.568987Z",
+  "args": [
+    "--epochs",
+    "2",
+    "--batch-size",
+    "16",
+    "--log-samples"
+  ],
+  "program": "/Users/lishuyu/Codes/wandbTestCNN/train.py",
+  "codePath": "train.py",
+  "codePathLocal": "train.py",
+  "email": "lishuyustevenli@163.com",
+  "root": "/Users/lishuyu/Codes/wandbTestCNN",
+  "host": "10-20-127-83.dynapool.wireless.nyu.edu",
+  "executable": "/Users/lishuyu/miniconda3/bin/python",
+  "cpu_count": 14,
+  "cpu_count_logical": 14,
+  "disk": {
+    "/": {
+      "total": "994662584320",
+      "used": "795543736320"
+    }
+  },
+  "memory": {
+    "total": "25769803776"
+  },
+  "apple": {
+    "name": "Apple M4 Pro",
+    "ecpuCores": 4,
+    "pcpuCores": 10,
+    "gpuCores": 20,
+    "memoryGb": 24,
+    "swapTotalBytes": "3221225472",
+    "ramTotalBytes": "25769803776"
+  },
+  "writerId": "80ctjl81uu493jj0ijj2o0vxseqc718g"
+}

@@ -1,0 +1,32 @@
+100%|██████████| 9.91M/9.91M [00:00<00:00, 59.9MB/s]
+100%|██████████| 28.9k/28.9k [00:00<00:00, 773kB/s]
+100%|██████████| 1.65M/1.65M [00:00<00:00, 19.7MB/s]
+100%|██████████| 4.54k/4.54k [00:00<00:00, 8.50MB/s]
+Traceback (most recent call last):
+  File "/Users/lishuyu/Codes/wandbTestCNN/train.py", line 174, in <module>
+    train(args)
+    ~~~~~^^^^^^
+  File "/Users/lishuyu/Codes/wandbTestCNN/train.py", line 131, in train
+    log_sample_predictions(
+    ~~~~~~~~~~~~~~~~~~~~~~^
+        sample_images[:16].cpu(), sample_labels[:16], preds[:16].cpu()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/lishuyu/Codes/wandbTestCNN/train.py", line 73, in log_sample_predictions
+    grid = wandb.Image(
+        images,
+    ...<3 lines>...
+        + " ".join(str(l.item()) for l in labels),
+    )
+  File "/Users/lishuyu/miniconda3/lib/python3.13/site-packages/wandb/sdk/data_types/image.py", line 277, in __init__
+    self._initialize_from_data(data_or_path, mode, file_type, normalize)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/lishuyu/miniconda3/lib/python3.13/site-packages/wandb/sdk/data_types/image.py", line 416, in _initialize_from_data
+    mode = mode or self.guess_mode(data, file_type)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/lishuyu/miniconda3/lib/python3.13/site-packages/wandb/sdk/data_types/image.py", line 625, in guess_mode
+    raise ValueError(
+        f"Un-supported shape for image conversion {list(data.shape)}"
+    )
+ValueError: Un-supported shape for image conversion [16, 1, 28, 28]

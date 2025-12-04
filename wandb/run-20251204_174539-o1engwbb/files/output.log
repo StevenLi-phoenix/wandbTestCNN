@@ -1,0 +1,3 @@
+wandb: WARNING Data passed to `wandb.Image` should consist of values in the range [0, 255], image data will be normalized to this range, but behavior will be removed in a future version of wandb.
+Epoch 1/2 - train_loss: 0.1301, train_acc: 0.9600 - val_loss: 0.0421, val_acc: 0.9862
+Epoch 2/2 - train_loss: 0.0418, train_acc: 0.9872 - val_loss: 0.0426, val_acc: 0.9864
